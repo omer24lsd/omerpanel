@@ -1,0 +1,302 @@
+﻿<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SİBER GÜVENLİK PANELİ</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap');
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; font-family: 'Rajdhani', sans-serif; background-color: #050505; color: #fff; overflow: hidden; box-sizing: border-box; }
+        *, *:before, *:after { box-sizing: inherit; }
+
+        /* ARKA PLAN VİDEOSU */
+        #bg-video {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1; opacity: 0.8; object-fit: cover;
+        }
+
+        /* İNTRO VİDEOSU */
+        #intro-video {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 50; object-fit: cover; background: black;
+        }
+
+        /* MÜZİK KONTROLLERİ (MOBİL UYUMLU) */
+        .music-controls {
+            position: fixed; top: 40px; right: 10px; background: rgba(0, 0, 0, 0.8);
+            border: 1px solid #0ff; padding: 8px 12px; border-radius: 5px;
+            display: flex; gap: 8px; align-items: center; box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+            z-index: 20; max-width: 95vw; flex-wrap: wrap;
+        }
+        .music-controls select, .music-controls button {
+            background: rgba(0,0,0,0.5); border: 1px solid #0ff; color: #0ff;
+            padding: 5px 8px; font-family: 'Orbitron', sans-serif; cursor: pointer; transition: 0.3s; outline: none; font-size: 12px;
+        }
+        .music-controls button:hover { background: #0ff; color: #000; box-shadow: 0 0 10px #0ff; }
+        .music-controls input[type="range"] { accent-color: #0ff; cursor: pointer; width: 60px; }
+
+        /* ÜST YASAL UYARI NOTU (ÖMER İMZALI) */
+        #warning-banner {
+            position: fixed; top: 0; left: 0; width: 100%; background: rgba(255, 0, 0, 0.2);
+            border-bottom: 1px solid #f00; color: #ff5555; text-align: center; padding: 6px;
+            font-family: 'Orbitron', sans-serif; font-size: 11px; letter-spacing: 1px; z-index: 25;
+            display: none; backdrop-filter: blur(5px); text-shadow: 0 0 5px rgba(255,0,0,0.5);
+        }
+
+        /* GİRİŞ KUTUSU */
+        .panel-container {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(10, 10, 12, 0.88); backdrop-filter: blur(10px);
+            border: 1px solid #333; border-top: 2px solid #0ff; border-bottom: 2px solid #f00;
+            padding: 30px 20px; border-radius: 5px; box-shadow: 0 15px 35px rgba(0,0,0,0.9), 0 0 20px rgba(0, 255, 255, 0.15);
+            width: 90%; max-width: 350px; text-align: center; z-index: 10;
+        }
+        .panel-container h2 {
+            font-family: 'Orbitron', sans-serif; color: #fff; margin-bottom: 25px; letter-spacing: 2px; font-size: 20px;
+            text-shadow: 0 0 10px rgba(0,255,255,0.5);
+        }
+        .input-group { margin-bottom: 15px; text-align: left; }
+        .input-group label { display: block; font-size: 13px; color: #aaa; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+        .input-group input {
+            width: 100%; padding: 12px; background: rgba(0,0,0,0.6); border: 1px solid #444;
+            color: #0ff; font-family: 'Orbitron', sans-serif; font-size: 14px; outline: none; transition: 0.3s;
+            box-sizing: border-box; border-radius: 3px;
+        }
+        .input-group input:focus { border-color: #0ff; box-shadow: 0 0 8px rgba(0, 255, 255, 0.4); }
+        
+        .login-btn {
+            width: 100%; padding: 14px; background: transparent;
+            border: 1px solid #0ff; color: #0ff; font-family: 'Orbitron', sans-serif; font-weight: bold;
+            font-size: 15px; cursor: pointer; transition: 0.3s; text-transform: uppercase; letter-spacing: 2px;
+        }
+        .login-btn:hover { background: #0ff; color: #000; box-shadow: 0 0 15px rgba(0, 255, 255, 0.6); }
+
+        /* YAN MENÜ (SİDEBAR) - MOBİL UYUMLU */
+        @keyframes neonGlow {
+            0% { color: #0ff; text-shadow: 0 0 5px rgba(0,255,255,0.4); }
+            50% { color: #f0f; text-shadow: 0 0 15px rgba(255,0,255,0.8); }
+            100% { color: #0ff; text-shadow: 0 0 5px rgba(0,255,255,0.4); }
+        }
+
+        #sidebar {
+            position: fixed; top: 30px; left: -280px; width: 280px; height: calc(100% - 30px);
+            background: rgba(12, 12, 16, 0.96); backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(0, 255, 120, 0.3); z-index: 15;
+            transition: 0.4s ease; overflow-y: auto; padding-top: 10px;
+            box-shadow: 5px 0 25px rgba(0,0,0,0.8); display: none;
+        }
+        .sidebar-header {
+            padding: 12px 15px; font-family: 'Orbitron', sans-serif; font-size: 14px; 
+            animation: neonGlow 3s infinite; border-bottom: 1px solid #222; display: flex; align-items: center; justify-content: space-between;
+        }
+        .menu-item {
+            padding: 11px 15px; display: flex; align-items: center; justify-content: space-between;
+            color: #ddd; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.03);
+            transition: 0.3s; font-size: 13px; letter-spacing: 1px;
+        }
+        .menu-item:hover { background: rgba(0, 255, 120, 0.08); color: #0f0; padding-left: 20px; }
+        
+        /* AÇILIR ALT MENÜLER */
+        .submenu {
+            background: rgba(0,0,0,0.5); display: none; padding-left: 10px;
+            border-left: 2px solid #f0f;
+        }
+        .submenu div {
+            padding: 8px 12px; color: #bbb; font-size: 12px; cursor: pointer; transition: 0.2s;
+            font-family: 'Rajdhani', sans-serif;
+        }
+        .submenu div:hover { color: #0ff; background: rgba(255,0,255,0.1); padding-left: 15px; }
+
+        /* DINAMIK SORGULAMA PANELİ KUTUSU */
+        #dashboard {
+            display: none; position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(10, 10, 12, 0.92); backdrop-filter: blur(10px);
+            border-top: 2px solid #0f0; border-bottom: 2px solid #0f0;
+            padding: 25px 20px; border-radius: 5px; box-shadow: 0 15px 35px rgba(0,0,0,0.9), 0 0 20px rgba(0, 255, 0, 0.2);
+            width: 90%; max-width: 420px; z-index: 10; text-align: center;
+        }
+        #panel-title { color: #0f0; text-shadow: 0 0 10px rgba(0,255,0,0.5); font-family: 'Orbitron', sans-serif; margin-bottom: 15px; font-size: 16px; }
+        #dashboard .input-group input { color: #0f0; border-color: #0f0; }
+        #dashboard .input-group input:focus { box-shadow: 0 0 8px rgba(0, 255, 0, 0.4); }
+        .find-btn { border-color: #0f0; color: #0f0; background: transparent; width: 100%; padding: 12px; font-family: 'Orbitron', sans-serif; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+        .find-btn:hover { background: #0f0; color: #000; box-shadow: 0 0 15px rgba(0, 255, 0, 0.6); }
+
+        /* SONUÇ EKRANI */
+        #result-screen { 
+            display: none; margin-top: 15px; padding: 10px; background: rgba(0, 255, 0, 0.05); 
+            border: 1px dashed #0f0; color: #0f0; font-family: 'Courier New', monospace; 
+            text-align: left; font-size: 12px; line-height: 1.4; border-radius: 3px; max-height: 200px; overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ÜST UYARI NOTU -->
+    <div id="warning-banner">
+        ⚠ [DİKKAT] Saygısızlık ve kötü niyetle kullananlardan biz sorumlu değiliz. Saygılar: Ömer
+    </div>
+
+    <!-- INTRO VİDEOSU -->
+    <video id="intro-video" autoplay muted playsinline>
+        <source src="assets/videos/kelle.mp4" type="video/mp4">
+    </video>
+
+    <!-- ARKAPLAN VİDEOSU -->
+    <video id="bg-video" autoplay muted loop playsinline>
+        <source src="assets/videos/arkaplan.mp4" type="video/mp4">
+    </video>
+
+    <!-- MÜZİK KONTROL -->
+    <div class="music-controls">
+        <audio id="bg-audio" loop>
+            <source src="audio/music1.mp3" type="audio/mpeg">
+        </audio>
+        <select id="music-select">
+            <option value="audio/music1.mp3">Ses 1</option>
+            <option value="audio/music2.mp3">Ses 2</option>
+        </select>
+        <button id="play-btn">BAŞLAT</button>
+        <input type="range" id="volume-ctrl" min="0" max="1" step="0.1" value="0.5">
+    </div>
+
+    <!-- YAN MENÜ (SİDEBAR) -->
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <span>SİBER KONTROL</span>
+            <span style="color: #0f0; font-size: 10px;">● AKTİF</span>
+        </div>
+        <div class="menu-item" onclick="openPanel('Anasayfa', 'Sistem Durumu / Ping ID')">🏠 Anasayfa</div>
+        <div class="menu-item" onclick="openPanel('İletişim Kanalı', 'GSM / Chat ID')">💬 İletişim</div>
+        <div class="menu-item" onclick="openPanel('Checker Modülü', 'Hedef Kart / Hesap Verisi')">🏛 Checker</div>
+        <div class="menu-item" onclick="openPanel('Ad Soyad Veritabanı', 'Ad ve Soyad Bilgisi')">👤 Ad Soyad</div>
+        
+        <!-- SORGULAR ALT MENÜSÜ -->
+        <div class="menu-item" onclick="toggleSubmenu('sorgu-sub')" style="color: #0ff; font-weight:bold;">💎 Sorgular ▾</div>
+        <div id="sorgu-sub" class="submenu">
+            <div onclick="openPanel('T.C. Sorgu Plus', 'T.C. Kimlik Numarası')">📍 T.C. Sorgu Plus</div>
+            <div onclick="openPanel('Kütük Sorgu', 'T.C. veya Nüfus Kayıt No')">📂 Kütük Sorgu</div>
+            <div onclick="openPanel('T.C. Sorgu Pro', 'T.C. Kimlik Numarası')">⚡ T.C. Sorgu Pro</div>
+            <div onclick="openPanel('T.C. Sorgu', 'T.C. Kimlik Numarası')">🔍 T.C. Sorgu</div>
+            <div onclick="openPanel('Aile Sorgu', 'Başvuran T.C. Numarası')">👨‍👩‍👧‍👦 Aile Sorgu</div>
+            <div onclick="openPanel('Soyağacı Sorgu', 'Kök T.C. Numarası')">🌳 Soyağacı Sorgu</div>
+        </div>
+
+        <div class="menu-item" onclick="openPanel('İkametgah Sorgu', 'T.C. / Adres ID')">🏠 İkametgah</div>
+        <div class="menu-item" onclick="openPanel('Araç Sorgu', 'Plaka veya Şasi No')">🚗 Araç</div>
+        <div class="menu-item" onclick="openPanel('İşyeri Sorgu', 'Vergi No / Ticari Sicil')">🏢 İşyeri</div>
+        <div class="menu-item" onclick="openPanel('Sağlık Sorgu', 'T.C. / Sağlık Sigorta No')">🏥 Sağlık</div>
+        <div class="menu-item" onclick="openPanel('Telefon Sorgu', 'GSM Numarası (05XX...)')">📞 Telefon</div>
+        <div class="menu-item" onclick="openPanel('Vesika Arşivi', 'T.C. Kimlik Numarası')">📷 Vesika</div>
+        
+        <!-- YENİ EKLENEN CANLI KAMERA SEÇENEĞİ -->
+        <div class="menu-item" onclick="window.open('kameralar.html', '_blank')" style="color: #0f0; font-weight: bold;">📹 Canlı Kamera İzle</div>
+        
+        <div class="menu-item" onclick="location.reload()" style="color: #f55;">🚪 Güvenli Çıkış</div>
+    </div>
+
+    <!-- GİRİŞ PANELİ -->
+    <div id="login-screen" class="panel-container">
+        <h2>SİSTEM GİRİŞİ</h2>
+        <div class="input-group">
+            <label>Yönetici Kodu</label>
+            <input type="text" id="username" placeholder="Admin ID girin" autocomplete="off">
+        </div>
+        <div class="input-group">
+            <label>Erişim Şifresi</label>
+            <input type="password" id="password" placeholder="Şifrenizi girin">
+        </div>
+        <button class="login-btn" onclick="checkLogin()">SİSTEME GİR</button>
+        <p id="error-msg" style="color: #f00; margin-top: 15px; display: none; font-size: 13px; font-weight:bold;">[!] ERİŞİM REDDEDİLDİ.</p>
+    </div>
+
+    <!-- DİNAMİK SORGULAMA KUTUSU -->
+    <div id="dashboard">
+        <h2 id="panel-title">SİSTEM AĞI</h2>
+        <div class="input-group">
+            <label id="input-label">Hedef Veri / GSM Numarası</label>
+            <input type="text" id="query-input" placeholder="Veri girin...">
+        </div>
+        <button class="find-btn" onclick="runQuery()">SORGULA / TARAT</button>
+        
+        <div id="result-screen"></div>
+    </div>
+
+    <script>
+        const introVideo = document.getElementById('intro-video');
+        introVideo.onended = function() { introVideo.style.display = 'none'; };
+        introVideo.onerror = function() { introVideo.style.display = 'none'; };
+
+        const audio = document.getElementById('bg-audio');
+        const playBtn = document.getElementById('play-btn');
+        const volumeCtrl = document.getElementById('volume-ctrl');
+        const musicSelect = document.getElementById('music-select');
+
+        playBtn.addEventListener('click', () => {
+            if(audio.paused) {
+                audio.play().then(() => {
+                    playBtn.innerText = 'DURDUR';
+                    playBtn.style.color = '#f00';
+                    playBtn.style.borderColor = '#f00';
+                }).catch(() => { alert("Müzik çalınamadı!"); });
+            } else {
+                audio.pause();
+                playBtn.innerText = 'BAŞLAT';
+                playBtn.style.color = '#0ff';
+                playBtn.style.borderColor = '#0ff';
+            }
+        });
+
+        volumeCtrl.addEventListener('input', (e) => { audio.volume = e.target.value; });
+        musicSelect.addEventListener('change', (e) => {
+            audio.src = e.target.value;
+            if(!audio.paused) { audio.play(); }
+        });
+
+        function checkLogin() {
+            const u = document.getElementById('username').value;
+            const p = document.getElementById('password').value;
+            if(u === 'omerpanel' && p === '123456789omer') {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('warning-banner').style.display = 'block';
+                const sidebar = document.getElementById('sidebar');
+                sidebar.style.display = 'block';
+                setTimeout(() => { sidebar.style.left = '0px'; }, 50);
+                document.getElementById('dashboard').style.display = 'block';
+            } else {
+                document.getElementById('error-msg').style.display = 'block';
+            }
+        }
+
+        function toggleSubmenu(id) {
+            const sub = document.getElementById(id);
+            sub.style.display = (sub.style.display === 'block') ? 'none' : 'block';
+        }
+
+        function openPanel(title, labelText) {
+            document.getElementById('panel-title').innerText = title.toUpperCase();
+            document.getElementById('input-label').innerText = labelText;
+            document.getElementById('query-input').value = '';
+            document.getElementById('result-screen').style.display = 'none';
+        }
+
+        function runQuery() {
+            const val = document.getElementById('query-input').value;
+            const title = document.getElementById('panel-title').innerText;
+            if(!val) { alert("Lütfen sorgulanacak veriyi girin!"); return; }
+            
+            const res = document.getElementById('result-screen');
+            res.style.display = 'block';
+            res.innerHTML = `> [${val}] için ${title} sunucusuna bağlanılıyor...<br>`;
+            
+            setTimeout(() => { res.innerHTML += '> Şifreli tünellerden paketler çekiliyor... <span style="color:#fff;">[OK]</span><br>'; }, 1200);
+            setTimeout(() => { res.innerHTML += '> Veri tabanı eşleştirmesi doğrulandı.<br>'; }, 2600);
+            setTimeout(() => { 
+                res.innerHTML += '<br><span style="color:#fff; font-weight:bold;">> [✓] SORGULAMA BAŞARIYLA TAMAMLANDI [✓]</span><br>'; 
+                res.innerHTML += `> <span style="color:#0ff;">Sorgulanan Veri:</span> ${val}<br>`;
+                res.innerHTML += `> <span style="color:#0ff;">Durum:</span> Aktif Kayıt Bulundu<br>`;
+                res.innerHTML += '> <span style="color:#f00;">Güvenlik Logları Temizlendi.</span><br>';
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
